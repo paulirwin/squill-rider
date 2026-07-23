@@ -4,7 +4,9 @@ rootProject.name = "squill-rider"
 
 pluginManagement {
     plugins {
-        id("org.jetbrains.kotlin.jvm") version "2.1.20"
+        // Keep in step with the Kotlin the target Rider platform is built with (Rider 2026.1
+        // ships Kotlin 2.3.x); an older compiler rejects its metadata.
+        id("org.jetbrains.kotlin.jvm") version "2.3.0"
     }
 }
 

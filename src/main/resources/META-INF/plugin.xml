@@ -11,12 +11,15 @@
         <code>.squillproj</code> projects.
     ]]></description>
 
-    <!-- Platform-only for now. The SQL-dialect work will add a dependency on
-         com.intellij.database (bundled in Rider) when it introduces an extension that uses it. -->
-    <depends>com.intellij.modules.platform</depends>
+    <!-- Rider-targeted: the plugin registers a frontend project-model icon provider that gives
+         .squillproj projects a database icon in Solution Explorer. -->
+    <depends>com.intellij.modules.rider</depends>
 
-    <extensions defaultExtensionNs="com.intellij">
-        <!-- Squill-specific extensions are added in follow-up PRs (provider detection,
-             SQL dialect mapping, build integration). -->
+    <extensions defaultExtensionNs="com.intellij.rider">
+        <!-- The Solution Explorer project-node icon is frontend-owned (calculateIcon queries
+             this EP first). Registering a provider is the supported way to icon a project node;
+             a ReSharper backend presenter is NOT consulted for it. -->
+        <projectModelIconProvider
+            implementation="io.github.paulirwin.squill.rider.SquillProjectIconProvider" />
     </extensions>
 </idea-plugin>
