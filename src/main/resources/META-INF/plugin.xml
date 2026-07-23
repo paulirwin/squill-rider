@@ -1,0 +1,22 @@
+<idea-plugin>
+    <id>io.github.paulirwin.squill-rider</id>
+    <name>Squill</name>
+    <vendor url="https://github.com/paulirwin/squill-rider">Paul Irwin</vendor>
+
+    <description><![CDATA[
+        IDE support for <a href="https://github.com/paulirwin/squill">Squill</a> database projects in Rider.
+        <br/>
+        Squill brings SSDT-style declarative, code-first database projects and DACPAC deployments to
+        PostgreSQL and MariaDB/MySQL. This plugin adds IDE support for editing and building
+        <code>.squillproj</code> projects.
+    ]]></description>
+
+    <!-- Platform-only for now. The SQL-dialect work will add a dependency on
+         com.intellij.database (bundled in Rider) when it introduces an extension that uses it. -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Squill-specific extensions are added in follow-up PRs (provider detection,
+             SQL dialect mapping, build integration). -->
+    </extensions>
+</idea-plugin>
