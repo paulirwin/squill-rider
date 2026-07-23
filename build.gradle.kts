@@ -26,12 +26,10 @@ dependencies {
     // IntelliJ Platform Gradle Plugin Dependencies Extension
     // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
-        // Target Rider — see squill issue #57. Rider bundles the SQL/database dialect
-        // support the plugin will use for provider-specific highlighting (added in a
-        // follow-up PR). See CLAUDE.md for the roadmap.
-        // Rider isn't distributed as an installer, so it must be resolved from the
-        // multi-OS archive. See intellij-platform-gradle-plugin#1852.
-        rider("2025.2") {
+        // Target Rider — see squill issue #57. Rider isn't distributed as an installer,
+        // so it must be resolved from the multi-OS archive. See
+        // intellij-platform-gradle-plugin#1852.
+        rider("2026.1") {
             useInstaller = false
         }
 
