@@ -8,7 +8,7 @@
         <br/>
         Squill brings SSDT-style declarative, code-first database projects and DACPAC deployments to
         PostgreSQL and MariaDB/MySQL. This plugin adds IDE support for editing and building
-        <code>.squillproj</code> projects; provider-aware SQL dialect highlighting is coming in a follow-up.
+        <code>.squillproj</code> projects.
     ]]></description>
 
     <!-- Platform-only for now. The SQL-dialect work will add a dependency on
