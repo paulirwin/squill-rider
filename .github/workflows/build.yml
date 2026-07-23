@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          # Write the Gradle user-home cache from every branch/PR, not just the default
+          # branch, so the Rider distribution the IntelliJ Platform Gradle Plugin
+          # downloads into GRADLE_USER_HOME is restored on later runs, not re-fetched.
+          cache-read-only: false
+
+      - name: Build, test, and verify plugin
+        run: ./gradlew build test verifyPlugin

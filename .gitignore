@@ -1,0 +1,17 @@
+# Gradle
+.gradle/
+build/
+.kotlin/
+
+# IntelliJ Platform Gradle Plugin (downloaded IDEs, sandbox, agents)
+.intellijPlatform/
+
+# IntelliJ / Rider
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# OS
+.DS_Store
