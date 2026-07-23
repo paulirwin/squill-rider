@@ -1,4 +1,4 @@
-package io.github.paulirwin.squillrider
+package io.github.paulirwin.squill.rider
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

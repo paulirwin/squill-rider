@@ -1,4 +1,4 @@
-package io.github.paulirwin.squillrider
+package io.github.paulirwin.squill.rider
 
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.NonNls

@@ -34,6 +34,6 @@ JetBrains platform plugin: **Kotlin**, built with the **IntelliJ Platform Gradle
 - `./gradlew runIde` — launch a sandbox Rider with the plugin loaded (first run downloads Rider; slow).
 - `./gradlew verifyPlugin` — run plugin-structure verification on its own.
 
-Key files: `build.gradle.kts` / `settings.gradle.kts` (build + pinned versions), `gradle.properties` (plugin coordinates, `pluginSinceBuild`, target IDE knobs), `src/main/resources/META-INF/plugin.xml` (plugin descriptor). Source lives under `io.github.paulirwin.squillrider`. CI (`.github/workflows/build.yml`) runs `build test verifyPlugin` on push/PR.
+Key files: `build.gradle.kts` / `settings.gradle.kts` (build + pinned versions), `gradle.properties` (plugin coordinates, `pluginSinceBuild`, target IDE knobs), `src/main/resources/META-INF/plugin.xml` (plugin descriptor). Source lives under `io.github.paulirwin.squill.rider`. CI (`.github/workflows/build.yml`) runs `build test verifyPlugin` on push/PR.
 
 **Roadmap:** PR #1 is the scaffold only. Follow-ups: (2) `.squillproj` provider detection + SQL dialect mapping via `com.intellij.database` (bundled in Rider); (3+) build/publish integration. Provider names in `.squillproj`'s `<SquillProviderName>` are case-insensitive: `Postgresql`/`PostgreSQL` → Postgres dialect; `MariaDb`/`MySql` → MariaDB/MySQL dialect.
