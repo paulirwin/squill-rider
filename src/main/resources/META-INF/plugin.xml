@@ -3,12 +3,58 @@
     <name>Squill</name>
     <vendor url="https://github.com/paulirwin/squill-rider">Paul Irwin</vendor>
 
+    <!-- Rendered in Rider's Plugins panel and on the JetBrains Marketplace, which allow only a
+         restricted subset of HTML: lists and inline markup are safe; tables and headings above
+         <h3> are not. -->
     <description><![CDATA[
-        IDE support for <a href="https://github.com/paulirwin/squill">Squill</a> database projects in Rider.
-        <br/>
-        Squill brings SSDT-style declarative, code-first database projects and DACPAC deployments to
-        PostgreSQL and MariaDB/MySQL. This plugin adds IDE support for editing and building
-        <code>.squillproj</code> projects.
+        <p>
+            IDE support for <a href="https://github.com/paulirwin/squill">Squill</a> database
+            projects in Rider.
+        </p>
+        <p>
+            Squill brings SSDT-style declarative, code-first database projects and DACPAC
+            deployments to PostgreSQL and MariaDB/MySQL. Define your schema as <code>.sql</code>
+            files, and Squill works out the changes needed to bring a database in line with it.
+        </p>
+
+        <h3>Features</h3>
+        <ul>
+            <li>
+                <b>Provider-aware SQL dialect.</b> The provider declared in
+                <code>&lt;SquillProviderName&gt;</code> is applied to the project's
+                <code>.sql</code> files, so highlighting and inspections match the database you
+                are actually targeting: PostgreSQL, MariaDB, or MySQL.
+            </li>
+            <li>
+                <b>Cross-file object resolution.</b> References between <code>.sql</code> files
+                resolve without a live database connection, so navigation and completion work
+                against the schema as written in source. A view can select from a table in
+                another folder, or a foreign key point at another schema.
+            </li>
+            <li>
+                <b>Deploy and Script run configurations.</b> Generate a deployment script to
+                preview a change, or apply it to a target database, without leaving the IDE.
+                Table rebuilds, dropping objects not in source, and data-loss protection are all
+                configurable, defaulting to the safe behavior.
+            </li>
+            <li>
+                <b>Project recognition.</b> <code>.squillproj</code> projects get a database icon
+                in Solution Explorer. They are standard MSBuild SDK projects, so Rider loads,
+                builds, and cleans them natively.
+            </li>
+        </ul>
+
+        <p>
+            Deployment targets a connection you have already configured in Rider's Database tool
+            window. Credentials stay in the IDE's credential store, and are never written to the
+            run configuration, which is typically committed to version control.
+        </p>
+
+        <p>
+            The Deploy and Script run configurations require the Squill CLI
+            (<code>dotnet tool install --global Squill</code>). All other features work without
+            it.
+        </p>
     ]]></description>
 
     <!-- Rider-targeted: the plugin registers a frontend project-model icon provider that gives
@@ -33,5 +79,9 @@
              object references resolve without a live database connection. -->
         <postStartupActivity
             implementation="io.github.paulirwin.squill.rider.SquillDdlDataSourceStartupActivity" />
+
+        <!-- Deploy / Script run configurations wrapping the Squill CLI verbs. -->
+        <configurationType
+            implementation="io.github.paulirwin.squill.rider.run.SquillConfigurationType" />
     </extensions>
 </idea-plugin>
