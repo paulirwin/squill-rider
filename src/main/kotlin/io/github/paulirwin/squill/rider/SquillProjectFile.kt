@@ -1,8 +1,9 @@
 package io.github.paulirwin.squill.rider
 
 /**
- * Pure parsing helpers for `.squillproj` project files. Kept free of IntelliJ VFS/PSI types so the
- * logic can be unit-tested against raw XML strings.
+ * Pure parsing helpers for `.squillproj` project files. Kept free of IntelliJ VFS/PSI types (no
+ * platform imports) so the logic can be unit-tested against raw XML strings without the IDE on the
+ * classpath.
  */
 object SquillProjectFile {
 

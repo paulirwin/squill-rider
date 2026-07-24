@@ -29,5 +29,9 @@
         <!-- On project open, map each .squillproj's provider-specific SQL dialect onto its folder. -->
         <postStartupActivity
             implementation="io.github.paulirwin.squill.rider.SquillSqlDialectStartupActivity" />
+        <!-- On project open, build an offline DDL data source per .squillproj so cross-file SQL
+             object references resolve without a live database connection. -->
+        <postStartupActivity
+            implementation="io.github.paulirwin.squill.rider.SquillDdlDataSourceStartupActivity" />
     </extensions>
 </idea-plugin>

@@ -63,7 +63,3 @@ class SquillSqlDialectService(private val project: Project) {
         const val SQUILLPROJ_EXTENSION_NO_DOT = "squillproj"
     }
 }
-
-/** Reads a VirtualFile's text as a String using its charset. */
-private fun VirtualFile.readTextViaCharset(): String =
-    String(contentsToByteArray(), charset)
