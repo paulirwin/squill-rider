@@ -33,6 +33,10 @@ dependencies {
             useInstaller = false
         }
 
+        // Bundled in Rider — provides the SQL dialects + per-file dialect mapping the plugin
+        // uses to apply a provider-specific dialect to a project's .sql files.
+        bundledPlugin("com.intellij.database")
+
         // The multi-OS archive doesn't bundle the JetBrains Runtime, so add it
         // explicitly — needed to launch the IDE via runIde and for platform tests.
         jetbrainsRuntime()
