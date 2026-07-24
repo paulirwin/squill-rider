@@ -56,8 +56,8 @@ sealed interface SquillCliLocation {
 sealed interface SquillCliProblem {
     /**
      * No CLI anywhere. [manifestDirectory] is non-null when a manifest exists nearby but doesn't
-     * list Squill, in which case `dotnet tool install Squill` (local) is the better suggestion
-     * than a global install.
+     * list Squill; the offered remedy stays a global install either way (see
+     * [SquillCliRemedy.forProblem]), with the manifest surfaced as guidance.
      */
     data class NotInstalled(val manifestDirectory: File?) : SquillCliProblem
 
