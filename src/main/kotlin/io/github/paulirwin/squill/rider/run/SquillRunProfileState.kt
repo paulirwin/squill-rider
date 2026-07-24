@@ -84,7 +84,16 @@ class SquillRunProfileState(
         commandLine.addParameters(cli.argumentPrefix)
         commandLine.addParameters(verbArguments)
 
-        val handler = KillableColoredProcessHandler(commandLine)
+        // Launch the real command, but hand the handler a masked rendering for display. Rider
+        // echoes that string into the console, where it is routinely copied into bug reports —
+        // the password must not survive into it. The process itself still receives the argument
+        // vector verbatim; no quoting is added, because GeneralCommandLine passes arguments
+        // straight to the OS with no shell to re-split them.
+        val handler = KillableColoredProcessHandler(
+            commandLine.createProcess(),
+            SquillCommandLineMasker.maskedCommandLine(commandLine),
+            StandardCharsets.UTF_8,
+        )
         ProcessTerminatedListener.attach(handler)
         return handler
     }
