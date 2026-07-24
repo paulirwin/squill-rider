@@ -75,12 +75,129 @@ class JdbcConnectionStringTest {
     }
 
     @Test
-    fun `query parameters in the jdbc url are ignored`() {
+    fun `unrecognized query parameters are ignored`() {
+        // DataGrip appends its own parameters; translating each to an ADO.NET equivalent is a
+        // far wider surface than this needs, so only credentials are read out.
         val ado = JdbcConnectionString.toAdoNet(
             "jdbc:postgresql://localhost:5432/db?ssl=true&ApplicationName=DataGrip", null, null,
         )
 
         assertEquals("Host=localhost;Port=5432;Database=db", ado)
+    }
+
+    // --- Credentials in the query string ---------------------------------------------------
+    //
+    // A user who pastes a full JDBC URL with credentials into DataGrip, rather than filling the
+    // separate user/password fields, would otherwise have them silently dropped and the CLI
+    // would be invoked without a password.
+
+    @Test
+    fun `user and password are read from the query string when not supplied separately`() {
+        val ado = JdbcConnectionString.toAdoNet(
+            "jdbc:postgresql://localhost:55432/squill_test?user=squill&password=squill", null, null,
+        )
+
+        assertEquals(
+            "Host=localhost;Port=55432;Database=squill_test;Username=squill;Password=squill",
+            ado,
+        )
+    }
+
+    @Test
+    fun `query string credentials work for mysql keywords too`() {
+        val ado = JdbcConnectionString.toAdoNet(
+            "jdbc:mariadb://localhost:53306/squill_test?user=squill&password=squill", null, null,
+        )
+
+        assertEquals(
+            "Server=localhost;Port=53306;Database=squill_test;User ID=squill;Password=squill",
+            ado,
+        )
+    }
+
+    @Test
+    fun `explicitly supplied credentials win over the query string`() {
+        // The data source's own fields are the authoritative credentials; the query string is
+        // only a fallback for when they are empty.
+        val ado = JdbcConnectionString.toAdoNet(
+            "jdbc:postgresql://localhost/db?user=fromurl&password=fromurl", "real", "realpw",
+        )
+
+        assertEquals("Host=localhost;Database=db;Username=real;Password=realpw", ado)
+    }
+
+    @Test
+    fun `each credential falls back independently`() {
+        // A data source commonly stores the username but leaves the password to the URL.
+        val ado = JdbcConnectionString.toAdoNet(
+            "jdbc:postgresql://localhost/db?password=fromurl", "real", null,
+        )
+
+        assertEquals("Host=localhost;Database=db;Username=real;Password=fromurl", ado)
+    }
+
+    @Test
+    fun `percent-encoded credentials are decoded`() {
+        // Query values are percent-encoded, so a password with reserved characters arrives
+        // encoded and must be decoded before it reaches the CLI.
+        val ado = JdbcConnectionString.toAdoNet(
+            "jdbc:postgresql://localhost/db?user=a%40b&password=p%40ss%3Aword", null, null,
+        )
+
+        assertEquals("Host=localhost;Database=db;Username=a@b;Password=p@ss:word", ado)
+    }
+
+    @Test
+    fun `a decoded credential containing a semicolon is still quoted`() {
+        // Decoding happens before escaping, so a percent-encoded semicolon must not be able to
+        // smuggle a pair separator into the connection string.
+        val ado = JdbcConnectionString.toAdoNet(
+            "jdbc:postgresql://localhost/db?password=a%3Bb", null, null,
+        )
+
+        assertEquals("Host=localhost;Database=db;Password=\"a;b\"", ado)
+    }
+
+    @Test
+    fun `blank query credentials are treated as absent`() {
+        val ado = JdbcConnectionString.toAdoNet(
+            "jdbc:postgresql://localhost/db?user=&password=", null, null,
+        )
+
+        assertEquals("Host=localhost;Database=db", ado)
+    }
+
+    @Test
+    fun `the local test containers' urls translate correctly`() {
+        // The exact URLs used to test the plugin against local Docker containers, pinned so the
+        // round trip that motivated query-string fallback keeps working.
+        assertEquals(
+            "Host=localhost;Port=55432;Database=squill_test;Username=squill;Password=squill",
+            JdbcConnectionString.toAdoNet(
+                "jdbc:postgresql://localhost:55432/squill_test?user=squill&password=squill",
+                null,
+                null,
+            ),
+        )
+
+        assertEquals(
+            "Server=localhost;Port=53306;Database=squill_test;User ID=squill;Password=squill",
+            JdbcConnectionString.toAdoNet(
+                "jdbc:mariadb://localhost:53306/squill_test?user=squill&password=squill",
+                null,
+                null,
+            ),
+        )
+    }
+
+    @Test
+    fun `the username parameter spelling is also accepted`() {
+        // Postgres JDBC accepts `user`; some tooling emits `username`.
+        val ado = JdbcConnectionString.toAdoNet(
+            "jdbc:postgresql://localhost/db?username=squill", null, null,
+        )
+
+        assertEquals("Host=localhost;Database=db;Username=squill", ado)
     }
 
     @Test

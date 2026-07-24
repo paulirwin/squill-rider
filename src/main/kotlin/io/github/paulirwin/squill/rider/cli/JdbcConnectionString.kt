@@ -20,25 +20,32 @@ object JdbcConnectionString {
     fun toAdoNet(jdbcUrl: String, username: String?, password: String?): String? {
         val parsed = parse(jdbcUrl) ?: return null
 
+        // Credentials supplied by the caller (the data source's own fields) are authoritative;
+        // the URL's query string is only a fallback, for the common case of pasting a complete
+        // JDBC URL and leaving the separate user/password fields empty. Each falls back
+        // independently, since storing the username but not the password is normal.
+        val effectiveUsername = username?.takeIf { it.isNotBlank() } ?: parsed.queryUsername
+        val effectivePassword = password?.takeIf { it.isNotBlank() } ?: parsed.queryPassword
+
         val pairs = buildList {
             when (parsed.dialect) {
                 Dialect.POSTGRES -> {
                     add("Host" to parsed.host)
                     parsed.port?.let { add("Port" to it) }
                     parsed.database?.let { add("Database" to it) }
-                    username?.let { add("Username" to it) }
+                    effectiveUsername?.let { add("Username" to it) }
                 }
 
                 Dialect.MYSQL -> {
                     add("Server" to parsed.host)
                     parsed.port?.let { add("Port" to it) }
                     parsed.database?.let { add("Database" to it) }
-                    username?.let { add("User ID" to it) }
+                    effectiveUsername?.let { add("User ID" to it) }
                 }
             }
             // Omitted entirely when absent: an empty `Password=` reads as an explicit empty
             // credential to some drivers, which fails differently from supplying none.
-            password?.let { add("Password" to it) }
+            effectivePassword?.let { add("Password" to it) }
         }
 
         return pairs.joinToString(";") { (key, value) -> "$key=${escapeValue(value)}" }
@@ -51,23 +58,27 @@ object JdbcConnectionString {
         val host: String,
         val port: String?,
         val database: String?,
+        val queryUsername: String?,
+        val queryPassword: String?,
     )
 
     /**
      * Matches `jdbc:<scheme>://<host>[:<port>][/<database>][?<params>]`.
      *
-     * Query parameters are captured only so they can be discarded — DataGrip appends its own
-     * (`ApplicationName`, ssl settings), and forwarding them would mean translating each into its
-     * ADO.NET equivalent, which is a much larger surface than this feature needs.
+     * Only credentials are read out of the query string. Other parameters are ignored: DataGrip
+     * appends its own (`ApplicationName`, ssl settings), and translating each into its ADO.NET
+     * equivalent is a much larger surface than this feature needs.
      */
     private val URL_REGEX = Regex(
-        """^jdbc:(postgresql|mysql|mariadb)://([^:/?]+)(?::(\d+))?(?:/([^?]*))?(?:\?.*)?$""",
+        """^jdbc:(postgresql|mysql|mariadb)://([^:/?]+)(?::(\d+))?(?:/([^?]*))?(?:\?(.*))?$""",
         RegexOption.IGNORE_CASE,
     )
 
     private fun parse(jdbcUrl: String): ParsedUrl? {
         val match = URL_REGEX.find(jdbcUrl.trim()) ?: return null
-        val (scheme, host, port, database) = match.destructured
+        val (scheme, host, port, database, query) = match.destructured
+
+        val parameters = parseQuery(query)
 
         return ParsedUrl(
             // MariaDB and MySQL share MySqlConnector, so they share keywords.
@@ -79,7 +90,67 @@ object JdbcConnectionString {
             host = host,
             port = port.takeIf { it.isNotBlank() },
             database = database.takeIf { it.isNotBlank() },
+            // Postgres JDBC uses `user`; some tooling emits `username`.
+            queryUsername = parameters["user"] ?: parameters["username"],
+            queryPassword = parameters["password"],
         )
+    }
+
+    /**
+     * Splits a query string into decoded parameters, keyed case-insensitively.
+     *
+     * Values are percent-decoded before use, so a password containing reserved characters
+     * survives the round trip. Decoding happens before [escapeValue], so an encoded semicolon
+     * cannot smuggle a pair separator into the resulting connection string.
+     */
+    private fun parseQuery(query: String): Map<String, String> {
+        if (query.isBlank()) return emptyMap()
+
+        return query.split('&')
+            .mapNotNull { parameter ->
+                val separator = parameter.indexOf('=')
+                if (separator <= 0) return@mapNotNull null
+
+                val name = parameter.substring(0, separator).lowercase()
+                val value = percentDecode(parameter.substring(separator + 1))
+
+                value.takeIf { it.isNotBlank() }?.let { name to it }
+            }
+            .toMap()
+    }
+
+    /**
+     * Percent-decodes a query value.
+     *
+     * Hand-rolled rather than using `URLDecoder`, which additionally treats `+` as a space — a
+     * rule from HTML form encoding that does not apply to JDBC URLs, and which would corrupt any
+     * password containing a literal plus sign. A malformed escape is left as written rather than
+     * throwing, since a credential is better passed through unchanged than rejected outright.
+     */
+    private fun percentDecode(value: String): String {
+        if (!value.contains('%')) return value
+
+        val decoded = StringBuilder(value.length)
+        var index = 0
+
+        while (index < value.length) {
+            val character = value[index]
+            val hex = if (character == '%' && index + 2 < value.length) {
+                value.substring(index + 1, index + 3).toIntOrNull(16)
+            } else {
+                null
+            }
+
+            if (hex != null) {
+                decoded.append(hex.toChar())
+                index += 3
+            } else {
+                decoded.append(character)
+                index++
+            }
+        }
+
+        return decoded.toString()
     }
 
     /**
