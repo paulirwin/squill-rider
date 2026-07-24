@@ -33,5 +33,9 @@
              object references resolve without a live database connection. -->
         <postStartupActivity
             implementation="io.github.paulirwin.squill.rider.SquillDdlDataSourceStartupActivity" />
+
+        <!-- Deploy / Script run configurations wrapping the Squill CLI verbs. -->
+        <configurationType
+            implementation="io.github.paulirwin.squill.rider.run.SquillConfigurationType" />
     </extensions>
 </idea-plugin>

@@ -119,6 +119,33 @@ object SquillCliResolver {
     }
 
     /**
+     * The real PATH lookup, for callers that aren't injecting a fake.
+     *
+     * Also probes the .NET global-tool directory explicitly: `~/.dotnet/tools` is added to the
+     * shell profile by `dotnet tool install`, but a GUI-launched IDE often does not inherit it,
+     * so a tool the user installed correctly would otherwise look missing.
+     */
+    fun lookupOnPath(command: String): File? {
+        val exeNames = if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) {
+            listOf("$command.exe", "$command.cmd", command)
+        } else {
+            listOf(command)
+        }
+
+        val pathDirectories = System.getenv("PATH")
+            ?.split(File.pathSeparator)
+            ?.filter { it.isNotBlank() }
+            .orEmpty()
+
+        val candidateDirectories = pathDirectories.map { File(it) } +
+            File(System.getProperty("user.home"), ".dotnet/tools")
+
+        return candidateDirectories.asSequence()
+            .flatMap { directory -> exeNames.asSequence().map { File(directory, it) } }
+            .firstOrNull { it.isFile && it.canExecute() }
+    }
+
+    /**
      * Explains why [resolve] would fail, or returns null when the CLI is usable.
      *
      * Separate from [resolve] so the hot path stays a simple nullable lookup while the error path
