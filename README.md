@@ -12,7 +12,7 @@ Squill `.squillproj` projects in Rider.
 
 `.squillproj` projects get a database icon in Solution Explorer, matching how Rider presents
 `.sqlproj`. Because `.squillproj` is a standard MSBuild SDK project, Rider already loads, builds,
-and cleans it natively — the plugin doesn't need to add build actions.
+and cleans it natively, so the plugin doesn't need to add build actions.
 
 ### Provider-aware SQL dialect
 
@@ -30,8 +30,8 @@ matching the SDK's own default.
 
 ### Cross-file object resolution
 
-References between `.sql` files — a view selecting from a table in another folder, a foreign key
-pointing at another schema — resolve without a live database connection. The plugin builds an
+References between `.sql` files resolve without a live database connection, whether that's a view
+selecting from a table in another folder or a foreign key pointing at another schema. The plugin builds an
 offline DDL data source per project, so navigation and completion work against the schema as
 written in source.
 
@@ -39,9 +39,9 @@ written in source.
 
 Two run configuration types wrap the Squill CLI's verbs:
 
-- **Script** — generate the deployment script without applying it. Only reads the target's
+- **Script**: generate the deployment script without applying it. Only reads the target's
   schema, so it's the safe way to preview a change.
-- **Deploy** — diff the project against a target database and apply the changes.
+- **Deploy**: diff the project against a target database and apply the changes.
 
 Both build the project first, then invoke the CLI against the resulting DACPAC. Options map
 directly onto the CLI's flags:
@@ -63,7 +63,7 @@ tool window, rather than by typing a connection string into the run configuratio
 
 Only the data source's *identity* is stored in the run configuration. The URL is read back at
 launch and the password comes from the IDE's credential store, so no secret is written to the run
-configuration XML — which is routinely committed to version control. The password is also masked
+configuration XML, which is routinely committed to version control. The password is also masked
 in the console command echo.
 
 One caveat: the connection string is passed to the CLI as a process argument, so it is visible in
@@ -98,8 +98,8 @@ Requires a JDK 21 toolchain. Use the Gradle wrapper:
 ./gradlew runIde     # launch a sandbox Rider with the plugin (first run downloads Rider)
 ```
 
-Tests are split across two source sets. `src/unitTest` holds pure logic — CLI argument
-construction, connection-string translation, provider parsing — and runs against the compiled
+Tests are split across two source sets. `src/unitTest` holds pure logic such as CLI argument
+construction, connection-string translation, and provider parsing. It runs against the compiled
 main output and JUnit alone, so CI can run it without downloading the multi-gigabyte Rider
 archive. Platform-dependent tests live in `src/test`.
 
@@ -114,7 +114,7 @@ Not yet implemented:
 
 - A settings screen for the CLI path. The path is honored if set, but there is currently no UI to
   edit it.
-- Solution Explorer context-menu actions — run configurations must be created manually.
+- Solution Explorer context-menu actions. Run configurations must be created manually.
 - Structured error reporting. The CLI reports every failure as exit code 1 with a prose message,
   so the plugin can't yet distinguish a data-loss block from a connection error or offer a
   targeted retry.
